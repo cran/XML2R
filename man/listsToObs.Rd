@@ -2,7 +2,7 @@
 \alias{listsToObs}
 \title{Flatten nested list into a list of observations}
 \usage{
-  listsToObs(l, append.value = TRUE)
+  listsToObs(l, append.value = TRUE, as.equiv = TRUE)
 }
 \arguments{
   \item{l}{list. Should be the output from
@@ -10,6 +10,10 @@
 
   \item{append.value}{logical. Should the XML value be
   appended to the observation?}
+
+  \item{as.equiv}{logical. Should observations from two
+  different files (but the same ancestory) have the same
+  name returned?}
 }
 \value{
   A list where each element reflects one "observation".

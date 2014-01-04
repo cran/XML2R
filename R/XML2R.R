@@ -41,27 +41,31 @@ XML2R <- function(urls, xpath, df=FALSE) {
 #' @param urls character vector or list of urls that point to an XML file (or anything readable by \link{xmlParse}).
 #' @param xpath XML XPath expression that is passed to \link{getNodeSet}. If missing, the entire root and all descendents are captured and returned (ie, tables = "/"). 
 #' @param append.value logical. Should the XML value be appended for relevant observations?
+#' @param as.equiv logical. Should observations from two different files (but the same ancestory) have the same name returned?
+#' @param quiet logical. Print file name currently being parsed?
 #' @seealso \link{urlsToDocs}, \link{docsToNodes}, \link{nodesToList}, \link{listsToObs}
 #' @return A list of "observations" and the "url_map" element. 
 #' @export
 #' @examples
 #' #construct desired file names for first example
+#' 
 #' pre <- "http://gd2.mlb.com/components/game/mlb/year_2013/month_06/day_14/"
 #' post <- c("gid_2013_06_14_phimlb_colmlb_1/inning/inning_all.xml",
-#'            "gid_2013_06_14_seamlb_oakmlb_1/inning/inning_all.xml")
+#'        "gid_2013_06_14_seamlb_oakmlb_1/inning/inning_all.xml")
 #' urls <- paste0(pre, post)
 #' #parse files into a list of observations
-#' obs <- XML2Obs(urls)
+#' obs <- XML2Obs(urls, as.equiv=FALSE)
+#' #names(obs) <- gsub("url[0-9]+//", "", names(obs)) 
 #' lvls <- unique(names(obs))
 #' pitch <- lvls[grep("pitch", lvls)]
 #' runner <- lvls[grep("runner", lvls)]
 #' action <- lvls[grep("action", lvls)]
 #' po <- lvls[grep("po", lvls)]
-#' tmp <- rename(obs, equiv=pitch, diff.name="inning") 
-#' tmp <- rename(tmp, equiv=runner, diff.name="inning") 
-#' tmp <- rename(tmp, equiv=po, diff.name="inning") 
-#' tmp <- rename(tmp, equiv=action, diff.name="inning") 
-#' obs2 <- rename(tmp, equiv=c("game//inning//top//atbat", "game//inning//bottom//atbat")) 
+#' tmp <- re_name(obs, equiv=pitch, diff.name="inning")       
+#' tmp <- re_name(tmp, equiv=runner, diff.name="inning")
+#' tmp <- re_name(tmp, equiv=po, diff.name="inning")
+#' tmp <- re_name(tmp, equiv=action, diff.name="inning")
+#' obs2 <- re_name(tmp, equiv=c("game//inning//top//atbat", "game//inning//bottom//atbat"))
 #' unique(names(obs2))
 #' tmp2 <- add_key(obs2, parent="game//inning", key.name="inning_key")
 #' obswkey <- add_key(tmp2, parent="game//inning//atbat", key.name="atbat_key")
@@ -73,9 +77,9 @@ XML2R <- function(urls, xpath, df=FALSE) {
 #' obz <- XML2Obs(urls2)
 #' unique(names(obz))
 
-XML2Obs <- function(urls, xpath, append.value=TRUE) {
+XML2Obs <- function(urls, xpath, append.value=TRUE, as.equiv=TRUE, quiet=FALSE) {
   if (missing(xpath)) xpath <- "/"
-  docs <- urlsToDocs(urls)
+  docs <- urlsToDocs(urls, quiet)
   valid.urls <- sapply(docs, function(x) attr(x, "XMLsource"))
   nodes <- docsToNodes(docs, xpath) #select the root
   rm(docs)
@@ -84,7 +88,7 @@ XML2Obs <- function(urls, xpath, append.value=TRUE) {
   url.count <- paste0("url", seq_len(length(valid.urls)))
   names(valid.urls) <- url.count
   names(l) <- url.count
-  obs <- listsToObs(l, append.value)
+  obs <- listsToObs(l, append.value, as.equiv)
   rm(l)
   obs[["url_map"]] <- valid.urls
   names(obs) <- sub("//attrs", "", names(obs))
