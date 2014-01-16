@@ -42,20 +42,21 @@ XML2R <- function(urls, xpath, df=FALSE) {
 #' @param xpath XML XPath expression that is passed to \link{getNodeSet}. If missing, the entire root and all descendents are captured and returned (ie, tables = "/"). 
 #' @param append.value logical. Should the XML value be appended for relevant observations?
 #' @param as.equiv logical. Should observations from two different files (but the same ancestory) have the same name returned?
+#' @param url.map logical. If TRUE, the 'url_key' column will contain a condensed url identifier (for each observation)
+#' and full urls will be stored in the "url_map" element. If FALSE, the full urls are included (for each observation) 
+#' as a 'url' column and no "url_map" is included.
 #' @param quiet logical. Print file name currently being parsed?
 #' @seealso \link{urlsToDocs}, \link{docsToNodes}, \link{nodesToList}, \link{listsToObs}
-#' @return A list of "observations" and the "url_map" element. 
+#' @return A list of "observations" and (possibly) the "url_map" element. 
 #' @export
 #' @examples
 #' #construct desired file names for first example
-#' 
 #' pre <- "http://gd2.mlb.com/components/game/mlb/year_2013/month_06/day_14/"
 #' post <- c("gid_2013_06_14_phimlb_colmlb_1/inning/inning_all.xml",
 #'        "gid_2013_06_14_seamlb_oakmlb_1/inning/inning_all.xml")
 #' urls <- paste0(pre, post)
 #' #parse files into a list of observations
-#' obs <- XML2Obs(urls, as.equiv=FALSE)
-#' #names(obs) <- gsub("url[0-9]+//", "", names(obs)) 
+#' obs <- XML2Obs(urls, url.map=FALSE)
 #' lvls <- unique(names(obs))
 #' pitch <- lvls[grep("pitch", lvls)]
 #' runner <- lvls[grep("runner", lvls)]
@@ -77,20 +78,14 @@ XML2R <- function(urls, xpath, df=FALSE) {
 #' obz <- XML2Obs(urls2)
 #' unique(names(obz))
 
-XML2Obs <- function(urls, xpath, append.value=TRUE, as.equiv=TRUE, quiet=FALSE) {
-  if (missing(xpath)) xpath <- "/"
+XML2Obs <- function(urls, xpath, append.value=TRUE, as.equiv=TRUE, url.map=FALSE, quiet=FALSE) {
+  if (missing(xpath)) xpath <- "/"  #select the root
   docs <- urlsToDocs(urls, quiet)
   valid.urls <- sapply(docs, function(x) attr(x, "XMLsource"))
-  nodes <- docsToNodes(docs, xpath) #select the root
+  nodes <- docsToNodes(docs, xpath) 
   rm(docs)
   l <- nodesToList(nodes)
   rm(nodes)
-  url.count <- paste0("url", seq_len(length(valid.urls)))
-  names(valid.urls) <- url.count
-  names(l) <- url.count
-  obs <- listsToObs(l, append.value, as.equiv)
-  rm(l)
-  obs[["url_map"]] <- valid.urls
-  names(obs) <- sub("//attrs", "", names(obs))
+  obs <- listsToObs(l, urls=valid.urls, append.value=append.value, as.equiv=as.equiv, url.map=url.map)
   return(obs)
 }

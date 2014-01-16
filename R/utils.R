@@ -32,7 +32,7 @@ urlsToDocs <- function(urls, quiet=FALSE){
 
 docsToNodes <- function(docs, xpath) {
   #I should really figure which class I want...
-  rapply(docs, function(x) getNodeSet(x, xpath), 
+  rapply(docs, function(x) getNodeSet(x, path=xpath), 
          classes=c('XMLInternalDocument', 'XMLAbstractDocument'), how="replace")
 }
 
@@ -59,8 +59,12 @@ nodesToList <- function(nodes){
 #' The names of the list that is returned reflects the XML ancestory of each observation.
 #' 
 #' @param l list. Should be the output from \link{nodesToList}. 
+#' @param urls character vector the same length as \code{l}. Each element should map element of \code{l} to an XML file.
 #' @param append.value logical. Should the XML value be appended to the observation?
 #' @param as.equiv logical. Should observations from two different files (but the same ancestory) have the same name returned?
+#' @param url.map logical. If TRUE, the 'url_key' column will contain a condensed url identifier (for each observation)
+#' and full urls will be stored in the "url_map" element. If FALSE, the full urls are included (for each observation) 
+#' as a 'url' column and no "url_map" is included.
 #' @return A list where each element reflects one "observation".
 #' @export
 
@@ -68,7 +72,11 @@ nodesToList <- function(nodes){
 #http://stackoverflow.com/questions/8139677/how-to-flatten-a-list-to-a-list-without-coercion?
 ##http://stackoverflow.com/questions/18862601/extract-name-hierarchy-for-each-leaf-of-a-nested-list
 
-listsToObs <- function(l, append.value=TRUE, as.equiv=TRUE) {
+listsToObs <- function(l, urls, append.value=TRUE, as.equiv=TRUE, url.map=TRUE) {
+  #add a prefix to the names of the list to help content to a url
+  url.count <- paste0("url", seq_len(length(urls)))
+  url_map <- cbind(url_key=url.count, url=urls)
+  names(l) <- url.count
   #Assuming the names of the list elements holding XML values (and only values) will be NULL, we can distinguish between values/attributes
   #By also assuming that values appear immediately before their respective attributes (which appears to be the way xmlToList works),
   #we append the XML value to a row of attributes (given that their from the same node)
@@ -85,11 +93,11 @@ listsToObs <- function(l, append.value=TRUE, as.equiv=TRUE) {
   } else {
     node.sets <- idx
   }
-  urls <- sub("//.*$", "", idx)
+  urlz <- sub("//.*$", "", idx)
   suffix <- sub(".*//", "", node.sets)
-  indicies <- which(name.len == 0 & suffix %in% "text") #tracks which XML values should be appended to the sequential row
-  #placeholder for the flattened list hierarchy
-  holder <- vector('list', list.len)
+  #tracks which XML values should be appended to the sequential row
+  indicies <- which(name.len == 0 & suffix %in% "text") 
+  holder <- vector('list', list.len) #placeholder for the flattened list hierarchy
   i <- 0L
   #fill up placeholder with relevant info
   rapply(l, function(x) { 
@@ -107,11 +115,20 @@ listsToObs <- function(l, append.value=TRUE, as.equiv=TRUE) {
     holder[indicies+1] <- mapply(function(x, y){ cbind(x, y) }, add.values, values, SIMPLIFY=FALSE)
     holder[indicies] <- NULL
     #remove the XML value elements (so they aren't duplicated)
-    urls <- urls[-indicies]
+    urlz <- urlz[-indicies]
     node.sets <- node.sets[-indicies]
   }
-  holder <- mapply(function(x, y) cbind(x, url_key=y), holder, urls, SIMPLIFY=FALSE)
-  names(holder) <- node.sets
+  if (url.map) {
+    holder <- mapply(function(x, y) cbind(x, url_key=y), holder, urlz, SIMPLIFY=FALSE)
+    holder[[length(holder) + 1]] <- url_map #append url_map to end of list
+    node.sets <- c(node.sets, "url_map")
+  } else {
+    tab <- table(urlz)
+    reps <- tab[match(url.count, names(tab))]
+    reps[is.na(reps)] <- 0 #error handling for urls without any observations
+    holder <- mapply(function(x, y) cbind(x, url=y), holder, rep(urls, reps), SIMPLIFY=FALSE)
+  }
+  names(holder) <- sub("//attrs", "", node.sets)
   return(holder)
 }
 
@@ -129,11 +146,12 @@ listsToObs <- function(l, append.value=TRUE, as.equiv=TRUE) {
 #' @param equiv character vector with the appropriate (unique) names that should be regarded "equivalent".
 #' @param diff.name character string used for naming the variable that is appended to any observations whose name was overwritten. 
 #' The value for this variable is the difference in from the original name and the overwritten name.
+#' @param rename.as character string to override naming of observations that are renamed.
 #' @param quiet logical. Include message about how observations are being renamed?
 #' @return A list of "observations". 
 #' @export
 
-re_name <- function(obs, namez, equiv, diff.name="diff_name", quiet=FALSE){
+re_name <- function(obs, namez, equiv, diff.name="diff_name", rename.as, quiet=FALSE){
   if (missing(equiv)) {
     warning("Must include equiv argument!")
     return(obs)
@@ -166,11 +184,13 @@ re_name <- function(obs, namez, equiv, diff.name="diff_name", quiet=FALSE){
   } else {
     label <- paste0(keeps, collapse="//") 
   }
+  if (!missing(rename.as)) label <- rename.as
   if (!quiet) message(paste0("Renaming all list elements named: \n", paste(equiv, collapse="  OR  "), "\nwith\n", label))
   diffs <- lapply(baseline, function(x) paste(x[!x %in% keeps], collapse="//")) #keeps the nodes that will be 'overwritten'
   idx <- nms %in% equiv
   #idx <- grepl(paste(equiv, collapse="||"), nms)  #grep here instead?
-  names(obs)[idx] <- label #overwrite the names
+  #overwrite the names
+  names(obs)[idx] <- label
   #get the information that was "lost" when overwritting names and append a new column accordingly
   klass <- as.character(diffs[match(nms[idx], names(diffs))]) 
   obs[idx] <- mapply(function(x, y) cbind(x, `colnames<-`(cbind(y), diff.name)), obs[idx], klass, SIMPLIFY=FALSE)
