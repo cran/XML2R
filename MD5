@@ -1,10 +1,10 @@
-44abd750f6d33df9b607656188cbe76f *DESCRIPTION
-e19c77c8b55cc07696fda2014f26f209 *NAMESPACE
-1fe0655ce9aafc3efa081a8a7a69a72c *NEWS
-ee672cb79f902b980643f3d425249f34 *R/XML2R.R
-186a8b86caeaecd2173191fcb7c37a00 *R/utils.R
+e5fceb428dd099db8d35564b42d0201b *DESCRIPTION
+7ef320b7b139f8ce23fad32678820823 *NAMESPACE
+6e6ca0ed79773128ea9a066627158e4d *NEWS
+553be9aec38c43d1a5dd1a63c487e786 *R/XML2R.R
+f7cd55fa5c64038c2813df5067f2f556 *R/utils.R
 73523df0f71afbb32f038de06d189f3b *README.md
-259ce7cc55f7f9ef3725ca212771ce5f *man/XML2Obs.Rd
+d74f7b4ae1fd2878694b875592f64fd8 *man/XML2Obs.Rd
 161712a528aa7837544f11f61d17eda4 *man/XML2R.Rd
 69ce99e722d0ddd067ea5676baa59c94 *man/add_key.Rd
 e605c89ac3ca00f2d16a15e4f3469df8 *man/collapse_obs.Rd
@@ -12,4 +12,4 @@ e605c89ac3ca00f2d16a15e4f3469df8 *man/collapse_obs.Rd
 60db944f237d97e95bdf49a9b91ff118 *man/listsToObs.Rd
 260a35904f96c67e7fadd8bdbcb634b1 *man/nodesToList.Rd
 c9b209cf63f4a222f00cfd3bb304e1c4 *man/re_name.Rd
-d48bd0ed997ff4931cbaba1ce3bddbf1 *man/urlsToDocs.Rd
+c4e498b4bac9d0db47658d78c5d836ab *man/urlsToDocs.Rd

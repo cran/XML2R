@@ -1,3 +1,9 @@
+    CHANGES IN XML2R VERSION 0.0.5
+
+MAJOR CHANGES/IMPROVEMENTS
+
+  - A dependency to RCurl was added so asynchronous downloads can be done via getURL. This dependency also has the benefit of more robust HTTP downloads.
+
     CHANGES IN XML2R VERSION 0.0.4
 
 MAJOR CHANGES/IMPROVEMENTS

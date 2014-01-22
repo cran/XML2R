@@ -1,6 +1,6 @@
 Package: XML2R
 Title: EasieR XML data collection
-Version: 0.0.4
+Version: 0.0.5
 Author: Carson Sievert <sievert@iastate.edu>
 Maintainer: Carson Sievert <sievert@iastate.edu>
 Description: XML2R is a framework that reduces the effort required to transform
@@ -8,11 +8,11 @@ Description: XML2R is a framework that reduces the effort required to transform
     relationships.
 License: GPL (>= 2)
 Depends: R (>= 2.15.1), XML
-Imports: plyr
+Imports: RCurl, plyr
 Date: 2014-01-22
 URL: http://cpsievert.github.com/XML2R
 BugReports: http://github.com/cpsievert/XML2R/issues
-Packaged: 2014-01-23 02:10:17 UTC; cpsievert
+Packaged: 2014-03-03 21:52:06 UTC; cpsievert
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2014-01-23 06:56:37
+Date/Publication: 2014-03-04 01:09:07
