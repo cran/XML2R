@@ -1,8 +1,8 @@
-\name{collapse}
-\alias{collapse}
+\name{collapse_obs}
+\alias{collapse_obs}
 \title{Collapse a list of observations into a list of tables.}
 \usage{
-collapse(obs)
+collapse_obs(obs)
 }
 \arguments{
   \item{obs}{list of observations.}
